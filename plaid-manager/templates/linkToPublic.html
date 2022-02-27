@@ -1,0 +1,73 @@
+<div id="container" class="initial-view">
+            <p class="initial-view__description">
+              <h2>Click the button below to open a list of Institutions. After you
+              select one, you’ll be guided through an authentication process. If
+              using the default Sandbox environment, use username
+              <strong>user_good</strong> and password
+              <strong>pass_good</strong>. Upon completion, a
+              <code>public_token</code> will be passed back to the server and
+              exchanged for <code>access_token</code>. </h2>
+            </p>
+
+            <button id="link-btn" class="button button--is-primary"> Connect with Plaid </button>
+
+			<link rel="stylesheet" href="https://threads.plaid.com/threads.css">
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+			<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+			<script type="text/javascript">
+					function linkToPublicToken()
+					{
+						$.ajax({
+									url: '/token_exchange/link_token/',
+									data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+									type: 'POST',
+									dataType: 'json', // this bit here
+									success: function(response) {
+										var link_token = response.link_token;
+										const handler = Plaid.create({
+											token: link_token,
+											onSuccess: (public_token, metadata) => {
+													$.ajax({
+															url: "/token_exchange/get_access_token/",
+															type: 'POST',
+															headers: {
+																"X-CSRFToken": '{{ csrf_token }}'
+															},
+															data: { 
+																'public_token': public_token,
+																csrfmiddlewaretoken: '{{ csrf_token }}',
+															},
+
+															success: function (response) {
+																window.location.href = "/token_exchange/home/";
+															}
+													});
+											},
+											onLoad: () => {},
+											onExit: (err, metadata) => {
+												if(err!=null)
+												{
+													if(err.error_code == "INVALID_LINK_TOKEN")
+													{
+														handler.destroy();
+														handler.open();
+													}
+												}
+											},
+											onEvent: (eventName, metadata) => {},
+											receivedRedirectUri: null,
+											});
+										handler.open();
+									},
+									error: function(error) {
+										console.log(error);
+									}
+								});
+					};
+
+					document.getElementById("link-btn").onclick= function(){
+						linkToPublicToken();
+					};
+
+			</script>
+</div>
