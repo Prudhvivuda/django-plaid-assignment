@@ -22,13 +22,6 @@ client = plaid.Client(client_id=PLAID_CLIENT_ID, secret=PLAID_SECRET, environmen
 
 class getLinkToken(APIView):
 
-	'''
-	[To get Link Token from Plaid Front End]
-	@/plaid/link_token/
-	[POST req : is sent with user credentials (id and secret) to  link/token/create]
-	'''
-	# permission_classes = [IsAuthenticated]
-
 	def post(self,request):
 
 		user = request.user
@@ -60,19 +53,11 @@ class getLinkToken(APIView):
 
 @csrf_protect
 def home(request):
-	'''
-	@/plaid/home/
-	'''
 	return render(request, "linkToPublic.html",{})
 
 
 class getAccessToken(APIView):
-	'''
-	@/plaid/get_access_token/
-	[POST req : temp public token is exchanged with a permanent access token and saved in the db.]
-	Transaction and Account are populated @Async
-	Message Queue : Rabbitmq must have a worker running
-	'''
+	
 	def post(self,request):
 
 		request_data = request.POST
@@ -98,10 +83,7 @@ class getAccessToken(APIView):
 
 
 class getItems(APIView):
-	'''
-	@/plaid/get_items/
-	[GET req : fetches all items of user currently logged-in/request.user
-	'''
+	
 	pagination.PageNumberPagination.page_size = 10
 
 	def get(self,request):
@@ -127,10 +109,6 @@ class getItems(APIView):
 
 class getAccounts(APIView):
 
-	'''
-	@/plaid/get_accounts/
-	[GET req : fetches all accounts from all items of user currently logged-in/request.user
-	'''
 	pagination.PageNumberPagination.page_size = 10
 
 	def get(self,request):
@@ -159,14 +137,6 @@ class getAccounts(APIView):
 
 class getTransactions(APIView):
 
-	'''
-	[To fetch all Transactions of user]
-	@/plaid/get_items/
-	[GET req : fetches all transactions in all accounts of all items of user 
-	currently logged-in/request.user and displays in json in a list format]
-	'''
-
-	# permission_classes  =  [IsAuthenticated]
 	pagination.PageNumberPagination.page_size = 10
 
 	def get(self,request):
@@ -174,10 +144,10 @@ class getTransactions(APIView):
 		if len(bank_item)>0:
 			try:
 				access_token_obj_list = bank_item.values('access_token')
-				transactions_responses=[]
-				# transactions of 1 month i.e. 30 days
+				transactions_responses = []
+				# transactions of 24 months
 				start_date = '{:%Y-%m-%d}'.format(
-					datetime.datetime.now() + datetime.timedelta(-30))
+					datetime.datetime.now() + datetime.timedelta(-730))
 				end_date = '{:%Y-%m-%d}'.format(datetime.datetime.now())
 
 				for access_token_obj in access_token_obj_list:
@@ -198,10 +168,6 @@ class getTransactions(APIView):
 
 @csrf_exempt
 def transactionWebhook(request):
-	'''[GET req : Webhook to listen to Transaction updates]
-	@plaid/transaction_webhook/
-	Message Queue : Rabbitmq must have a worker running
-	'''
 	
 	request_data = request.POST
 	webhook_type = request_data.get('webhook_type')
