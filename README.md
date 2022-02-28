@@ -18,7 +18,7 @@ $ pip3 install -r requirements.txt
 ## Install RabbitMq (for Async Message Queue)
 
 ```sh
-brew install rebbitmq
+brew install rabbitmq
 ```
 
 ## Setup Models  
