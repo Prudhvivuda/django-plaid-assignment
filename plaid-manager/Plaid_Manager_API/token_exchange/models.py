@@ -14,6 +14,10 @@ class AccountModel(models.Model):
 	balance_available = models.FloatField(default=None, null=True)
 	balance_current = models.FloatField()
 
+class APILogModel(models.Model):
+	request_id = models.CharField(max_length=200, unique=True)
+	api_type = models.CharField(max_length=200)
+	date_log = models.DateTimeField(verbose_name='date_log', auto_now_add=True)
 
 class TransactionModel(models.Model):
 	transaction_id = models.CharField(max_length=100)
@@ -23,7 +27,3 @@ class TransactionModel(models.Model):
 	name = models.CharField(max_length=100)
 	pending = models.BooleanField()
 
-class APILogModel(models.Model):
-	request_id = models.CharField(max_length=200, unique=True)
-	api_type = models.CharField(max_length=200)
-	date_log = models.DateTimeField(verbose_name='date_log', auto_now_add=True)
